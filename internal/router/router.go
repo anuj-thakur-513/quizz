@@ -1,6 +1,9 @@
 package router
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/anuj-thakur-513/quizz/pkg/core"
+	"github.com/gin-gonic/gin"
+)
 
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
@@ -9,10 +12,7 @@ func SetupRouter() *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 
 	router.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"succcess": true,
-			"message":  "Server working fine",
-		})
+		c.JSON(200, core.ApiResponse(200, "Quizz Backend Working Fine", nil))
 	})
 
 	v1 := router.Group("/api/v1")
