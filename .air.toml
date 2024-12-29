@@ -1,0 +1,3 @@
+watch = ["**/*.go", "**/*.html"]  
+
+build_cmd = "go run cmd/server/main.go"  
