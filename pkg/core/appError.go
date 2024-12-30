@@ -5,16 +5,16 @@ import (
 )
 
 // ApiError struct to hold error details.
-type ApiError struct {
+type AppError struct {
 	StatusCode int    `json:"statusCode"`
 	Message    string `json:"message"`
 	Stack      string `json:"stack"`
 }
 
 // NewApiError creates a new instance of ApiError
-func NewApiError(statusCode int, message string) *ApiError {
+func NewAppError(statusCode int, message string) *AppError {
 	stack := captureStackTrace()
-	return &ApiError{
+	return &AppError{
 		StatusCode: statusCode,
 		Message:    message,
 		Stack:      stack,
@@ -29,7 +29,7 @@ func captureStackTrace() string {
 }
 
 // ToMap converts ApiError to a map for easier JSON encoding
-func (e *ApiError) ToMap() map[string]interface{} {
+func (e *AppError) ToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"statusCode": e.StatusCode,
 		"message":    e.Message,

@@ -3,12 +3,14 @@ package config
 import "os"
 
 type Keys struct {
-	PORT string
+	PORT      string
+	MONGO_URL string
 }
 
 func GetEnv() *Keys {
 	return &Keys{
-		PORT: getEnv("PORT", "8000"),
+		PORT:      getEnv("PORT", "8000"),
+		MONGO_URL: getEnv("MONGO_URL", "mongodb://localhost:27017"),
 	}
 }
 
