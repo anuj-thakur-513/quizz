@@ -6,19 +6,17 @@ import (
 
 // ApiError struct to hold error details.
 type ApiError struct {
-	StatusCode int      `json:"statusCode"`
-	Message    string   `json:"message"`
-	Errors     []string `json:"errors"`
-	Stack      string   `json:"stack"`
+	StatusCode int    `json:"statusCode"`
+	Message    string `json:"message"`
+	Stack      string `json:"stack"`
 }
 
 // NewApiError creates a new instance of ApiError
-func NewApiError(statusCode int, message string, errors []string) *ApiError {
+func NewApiError(statusCode int, message string) *ApiError {
 	stack := captureStackTrace()
 	return &ApiError{
 		StatusCode: statusCode,
 		Message:    message,
-		Errors:     errors,
 		Stack:      stack,
 	}
 }
@@ -35,7 +33,6 @@ func (e *ApiError) ToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"statusCode": e.StatusCode,
 		"message":    e.Message,
-		"errors":     e.Errors,
 		"stack":      e.Stack,
 	}
 }
