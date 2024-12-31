@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/anuj-thakur-513/quizz/pkg/core"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -9,6 +10,12 @@ func SetupRouter() *gin.Engine {
 	router := gin.Default()
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+		AllowMethods:     []string{"*"},
+		AllowHeaders:     []string{"*"},
+		AllowCredentials: true,
+	}))
 	gin.SetMode(gin.ReleaseMode)
 
 	router.GET("/", func(c *gin.Context) {

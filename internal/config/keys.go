@@ -3,14 +3,16 @@ package config
 import "os"
 
 type Keys struct {
-	PORT      string
-	MONGO_URL string
+	PORT       string
+	MONGO_URL  string
+	JWT_SECRET string
 }
 
 func GetEnv() *Keys {
 	return &Keys{
-		PORT:      getEnv("PORT", "8000"),
-		MONGO_URL: getEnv("MONGO_URL", "mongodb://localhost:27017"),
+		PORT:       getEnv("PORT", "8000"),
+		MONGO_URL:  getEnv("MONGO_URL", "mongodb://localhost:27017"),
+		JWT_SECRET: getEnv("JWT_SECRET", "secret"),
 	}
 }
 
