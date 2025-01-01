@@ -10,9 +10,10 @@ import (
 
 var secretKey = []byte(config.GetEnv().JWT_SECRET)
 
-func GenerateToken(email string) (string, error) {
+func GenerateToken(email string, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email": email,
+		"role":  role,
 		"exp":   time.Now().Add(time.Hour * 24 * 30).Unix(), // jwt expiry is set to 30 days
 	})
 

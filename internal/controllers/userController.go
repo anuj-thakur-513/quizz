@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 
@@ -39,7 +38,7 @@ func Signup(c *gin.Context) {
 		return
 	}
 
-	token, err := utils.GenerateToken(newUser.Email)
+	token, err := utils.GenerateToken(newUser.Email, string(newUser.Role))
 	if err != nil {
 		c.JSON(500, core.NewAppError(500, "Failed to create user", err.Error()))
 	}
@@ -91,12 +90,11 @@ func Login(c *gin.Context) {
 		c.JSON(401, core.NewAppError(401, "Unauthorized", "Password and Email don't match"))
 		return
 	}
-	token, err := utils.GenerateToken(user.Email)
+	token, err := utils.GenerateToken(user.Email, string(user.Role))
 	if err != nil {
 		c.JSON(500, core.NewAppError(500, "Failed to generate token", err.Error()))
 		return
 	}
-	fmt.Println("is live reload working")
 	c.SetCookie("token", token, 3600*24*30, "/", "localhost", true, true)
 
 	c.JSON(200, core.ApiResponse(200, "User logged in successfully", nil))
