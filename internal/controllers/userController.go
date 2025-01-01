@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"log"
@@ -10,14 +9,8 @@ import (
 	"github.com/anuj-thakur-513/quizz/pkg/core"
 	"github.com/anuj-thakur-513/quizz/pkg/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"go.mongodb.org/mongo-driver/bson"
 )
-
-const DB_NAME = utils.DB_NAME
-
-var ctx context.Context = context.Background()
-var validate = validator.New()
 
 func Signup(c *gin.Context) {
 	var newUser *models.User
@@ -44,7 +37,7 @@ func Signup(c *gin.Context) {
 	}
 	c.SetCookie("token", token, 3600*24*30, "/", "localhost", true, true)
 
-	c.JSON(200, core.ApiResponse(200, "User created successfully", map[string]string{
+	c.JSON(201, core.ApiResponse(200, "User created successfully", map[string]string{
 		"email": newUser.Email,
 		"name":  newUser.Name,
 	}))

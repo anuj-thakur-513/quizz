@@ -19,8 +19,8 @@ type User struct {
 	Email     string             `json:"email" bson:"email" validate:"email,required"`
 	Role      Role               `json:"role" bson:"role"`
 	Password  string             `json:"password" bson:"password" validate:"required,min=6,max=100"`
-	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
+	CreatedAt *time.Time         `json:"created_at" bson:"created_at"`
+	UpdatedAt *time.Time         `json:"updated_at" bson:"updated_at"`
 }
 
 type Role string
@@ -39,10 +39,11 @@ func (u *User) PreSave() {
 		u.Password = string(hash)
 	}
 
-	if u.CreatedAt.IsZero() {
-		u.CreatedAt = time.Now()
+	now := time.Now()
+	if u.CreatedAt == nil {
+		u.CreatedAt = &now
 	}
-	u.UpdatedAt = time.Now()
+	u.UpdatedAt = &now
 
 	if u.Role == "" {
 		u.Role = Default
