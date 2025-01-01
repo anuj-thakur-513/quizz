@@ -6,21 +6,21 @@ import (
 	"time"
 
 	"github.com/anuj-thakur-513/quizz/internal/services"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/v2/bson"
-	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
 	ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Name      string             `json:"name" validate:"required,min=2,max=100"`
-	Email     string             `json:"email" validate:"email,required"`
-	Role      Role               `json:"role"`
-	Password  string             `json:"password" validate:"required,min=6,max=100"`
-	CreatedAt time.Time          `json:"created_at"`
-	UpdatedAt time.Time          `json:"updated_at"`
+	Name      string             `json:"name" bson:"name" validate:"required,min=2,max=100"`
+	Email     string             `json:"email" bson:"email" validate:"email,required"`
+	Role      Role               `json:"role" bson:"role"`
+	Password  string             `json:"password" bson:"password" validate:"required,min=6,max=100"`
+	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
 }
 
 type Role string
