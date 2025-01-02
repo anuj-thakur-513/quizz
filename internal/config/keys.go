@@ -1,11 +1,28 @@
 package config
 
-import "os"
+import (
+	"log"
+	"os"
+
+	"github.com/joho/godotenv"
+)
+
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+}
 
 type Keys struct {
 	PORT       string
 	MONGO_URL  string
 	JWT_SECRET string
+	QUIZ_API   QuizAPIKeys
+}
+type QuizAPIKeys struct {
+	URL   string
+	TOKEN string
 }
 
 func GetEnv() *Keys {
@@ -13,11 +30,15 @@ func GetEnv() *Keys {
 		PORT:       getEnv("PORT", "8000"),
 		MONGO_URL:  getEnv("MONGO_URL", "mongodb://localhost:27017"),
 		JWT_SECRET: getEnv("JWT_SECRET", "secret"),
+		QUIZ_API: QuizAPIKeys{
+			URL:   getEnv("QUIZ_API_URL", "https://quizapi.io/api/v1/questions"),
+			TOKEN: getEnv("QUIZ_API_TOKEN", "secret"),
+		},
 	}
 }
 
 func getEnv(key, defaultValue string) string {
-	if value, exists := os.LookupEnv(key); exists {
+	if value := os.Getenv(key); value != "" {
 		return value
 	}
 	return defaultValue
