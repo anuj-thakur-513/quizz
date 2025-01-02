@@ -10,10 +10,10 @@ import (
 
 type Question struct {
 	ID                primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	QuestionText      string             `json:"question_text"`
-	IsMultipleCorrect bool               `json:"is_multiple_correct"`
+	QuestionText      string             `json:"question_text" bson:"question_text"`
+	IsMultipleCorrect bool               `json:"is_multiple_correct" bson:"is_multiple_correct"`
 	Options           []Options          `json:"options"`
-	SolutionText      string             `json:"solution_text"`
+	SolutionText      string             `json:"solution_text" bson:"solution_text"`
 	Difficulty        string             `json:"difficulty"`
 	Category          string             `json:"category"`
 	CreatedAt         *time.Time         `json:"created_at,omitempty" bson:"created_at,omitempty"`

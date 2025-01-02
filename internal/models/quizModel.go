@@ -15,8 +15,9 @@ import (
 type Quiz struct {
 	ID            primitive.ObjectID   `json:"_id,omitempty" bson:"_id,omitempty"`
 	Category      string               `json:"category" validate:"required"`
-	QuestionCount int                  `json:"question_count"`
+	QuestionCount int                  `json:"question_count" bson:"question_count"`
 	Questions     []primitive.ObjectID `json:"questions" bson:"questions"`
+	IsLive        *bool                `json:"is_live" bson:"is_live"`
 	CreatedAt     *time.Time           `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt     *time.Time           `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
@@ -24,6 +25,10 @@ type Quiz struct {
 func (q *Quiz) PreSave() {
 	if q.QuestionCount == 0 {
 		q.QuestionCount = 10
+	}
+	if q.IsLive == nil {
+		t := true
+		q.IsLive = &t
 	}
 	now := time.Now()
 	if q.CreatedAt == nil {
