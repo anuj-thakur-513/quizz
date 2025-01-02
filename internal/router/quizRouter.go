@@ -8,6 +8,6 @@ import (
 
 func QuizRouter(router *gin.RouterGroup) {
 	router.POST("/", middlewares.AdminCheck(), controllers.CreateQuiz)
-	router.GET("/", middlewares.AdminCheck(), controllers.GetQuizzes)
-	router.GET("/:quizId", controllers.GetQuiz) // add middleware for auth check
+	router.GET("/", middlewares.AuthCheck(), controllers.GetQuizzes)
+	router.GET("/:quizId", middlewares.AuthCheck(), controllers.GetQuiz)
 }
