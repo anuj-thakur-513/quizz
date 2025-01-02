@@ -9,10 +9,10 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func AdminCheck() gin.HandlerFunc {
+func AuthCheck() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var authToken string
-		token, err := c.Cookie("token")
+		cookie, err := c.Cookie("token")
 		if err != nil {
 			header := c.GetHeader("Authorization")
 			if header == "" {
@@ -28,11 +28,10 @@ func AdminCheck() gin.HandlerFunc {
 			}
 			authToken = parts[1]
 		} else {
-			authToken = token
+			authToken = cookie
 		}
 
 		verified, err := utils.VerifyToken(authToken)
-
 		if err != nil {
 			c.JSON(401, core.NewAppError(401, "Unauthorized"))
 			c.Abort()
@@ -46,7 +45,7 @@ func AdminCheck() gin.HandlerFunc {
 
 		claims, ok := verified.Claims.(jwt.MapClaims)
 
-		if !ok || claims["role"] != "admin" {
+		if !ok {
 			c.JSON(401, core.NewAppError(401, "Invalid Token"))
 		}
 
