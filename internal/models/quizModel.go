@@ -13,11 +13,12 @@ import (
 )
 
 type Quiz struct {
-	ID            primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Category      string             `json:"category" validate:"required"`
-	QuestionCount int                `json:"question_count"`
-	CreatedAt     *time.Time         `json:"created_at,omitempty" bson:"created_at,omitempty"`
-	UpdatedAt     *time.Time         `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	ID            primitive.ObjectID   `json:"_id,omitempty" bson:"_id,omitempty"`
+	Category      string               `json:"category" validate:"required"`
+	QuestionCount int                  `json:"question_count"`
+	Questions     []primitive.ObjectID `json:"questions" bson:"questions"`
+	CreatedAt     *time.Time           `json:"created_at,omitempty" bson:"created_at,omitempty"`
+	UpdatedAt     *time.Time           `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
 func (q *Quiz) PreSave() {
