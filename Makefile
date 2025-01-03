@@ -5,7 +5,7 @@ APP_NAME = quizz
 all: build
 
 # Build the application
-build:
+build: lint
 	go build -o $(APP_NAME)
 
 # Run the application
@@ -13,7 +13,7 @@ dev:
 	air
 
 # Start the server (example)
-start:
+start: lint
 	go run cmd/server/main.go
 
 # Install dependencies (if any)
