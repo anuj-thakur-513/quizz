@@ -37,14 +37,7 @@ func AuthCheck() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		if !verified.Valid {
-			c.JSON(401, core.NewAppError(401, "Token expired"))
-			c.Abort()
-			return
-		}
-
 		claims, ok := verified.Claims.(jwt.MapClaims)
-
 		if !ok {
 			c.JSON(401, core.NewAppError(401, "Invalid Token"))
 		}

@@ -76,10 +76,11 @@ func CreateQuiz(c *gin.Context) {
 		q := models.Question{
 			QuestionText:      question["question"].(string),
 			IsMultipleCorrect: question["multiple_correct_answers"].(string) == "true",
-			Options:           extractOptions(question["answers"].(map[string]interface{}), question["correct_answers"].(map[string]interface{})),
-			SolutionText:      question["explanation"].(string),
-			Difficulty:        question["difficulty"].(string),
-			Category:          question["category"].(string),
+			Options: extractOptions(question["answers"].(map[string]interface{}),
+				question["correct_answers"].(map[string]interface{})),
+			SolutionText: question["explanation"].(string),
+			Difficulty:   question["difficulty"].(string),
+			Category:     question["category"].(string),
 		}
 		q.PreSave()
 		questionData = append(questionData, q)
@@ -144,7 +145,9 @@ func GetQuiz(c *gin.Context) {
 		c.JSON(400, core.NewAppError(400, "Invalid Request", "quizId is invalid"))
 	}
 
-	if err := quizzes.FindOne(ctx, bson.M{"_id": id}, options.FindOne().SetProjection(bson.M{"created_at": 0, "updated_at": 0})).Decode(&quiz); err != nil {
+	if err := quizzes.FindOne(ctx, bson.M{"_id": id}, options.FindOne().SetProjection(
+		bson.M{"created_at": 0, "updated_at": 0},
+	)).Decode(&quiz); err != nil {
 		c.JSON(500, core.NewAppError(500, "Failed to get quiz", err.Error()))
 		return
 	}
