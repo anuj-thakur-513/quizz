@@ -22,7 +22,7 @@ type Question struct {
 
 type Options struct {
 	Option    string `json:"option"`
-	IsCorrect bool   `json:"is_correct"`
+	IsCorrect bool   `json:"is_correct" bson:"is_correct"`
 }
 
 func (q *Question) PreSave() {
