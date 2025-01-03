@@ -10,4 +10,7 @@ func V1Router(router *gin.RouterGroup) {
 
 	quiz := router.Group("/quiz")
 	QuizRouter(quiz)
+
+	admin := router.Group("/admin")
+	AdminRouter(admin)
 }
