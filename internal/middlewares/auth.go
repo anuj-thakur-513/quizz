@@ -1,12 +1,15 @@
 package middlewares
 
 import (
+	"context"
 	"strings"
 
+	"github.com/anuj-thakur-513/quizz/internal/models"
 	"github.com/anuj-thakur-513/quizz/pkg/core"
 	"github.com/anuj-thakur-513/quizz/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func AuthCheck() gin.HandlerFunc {
@@ -42,7 +45,17 @@ func AuthCheck() gin.HandlerFunc {
 			c.JSON(401, core.NewAppError(401, "Invalid Token"))
 		}
 
+		users := models.GetUsersCollection()
+		var user *models.User
+
+		if err := users.FindOne(context.Background(), bson.M{"email": claims["email"]}).Decode(&user); err != nil {
+			c.JSON(401, core.NewAppError(401, "Unauthorized"))
+			c.Abort()
+			return
+		}
+
 		c.Set("email", claims["email"])
+		c.Set("user", user)
 		c.Next()
 	}
 }

@@ -10,4 +10,5 @@ func QuizRouter(router *gin.RouterGroup) {
 	router.POST("/", middlewares.AdminCheck(), controllers.CreateQuiz)
 	router.GET("/", middlewares.AuthCheck(), controllers.GetQuizzes)
 	router.GET("/:quizId", middlewares.AuthCheck(), controllers.GetQuiz)
+	router.POST("/:quizId/:questionId", middlewares.AuthCheck(), middlewares.QuestionInQuiz(), controllers.SubmitSolution)
 }
