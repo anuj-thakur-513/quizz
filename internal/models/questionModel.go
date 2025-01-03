@@ -14,7 +14,7 @@ type Question struct {
 	IsMultipleCorrect bool               `json:"is_multiple_correct" bson:"is_multiple_correct"`
 	Options           []Options          `json:"options"`
 	SolutionText      string             `json:"solution_text" bson:"solution_text"`
-	Difficulty        string             `json:"difficulty"`
+	Difficulty        string             `json:"difficulty"` // easy[1], medium[2], hard[3]
 	Category          string             `json:"category"`
 	CreatedAt         *time.Time         `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt         *time.Time         `json:"updated_at,omitempty" bson:"updated_at,omitempty"`

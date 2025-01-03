@@ -10,10 +10,11 @@ import (
 
 type Solution struct {
 	ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	User      primitive.ObjectID `json:"user" bson:"user"`
-	Quiz      primitive.ObjectID `json:"quiz" bson:"quiz"`
-	Question  primitive.ObjectID `json:"question" bson:"question"`
+	User      primitive.ObjectID `json:"user"`
+	Quiz      primitive.ObjectID `json:"quiz"`
+	Question  primitive.ObjectID `json:"question"`
 	IsCorrect bool               `json:"is_correct" bson:"is_correct"`
+	Score     int                `json:"score"`
 	CreatedAt *time.Time         `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt *time.Time         `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }

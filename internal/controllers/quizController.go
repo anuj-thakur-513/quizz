@@ -113,9 +113,20 @@ func SubmitSolution(c *gin.Context) {
 
 	var isCorrect bool
 	options := question.Options
+	difficulty := question.Difficulty
+	score := 0
 	for _, option := range options {
 		if option.Option == body["solution"] {
 			isCorrect = option.IsCorrect
+		}
+	}
+	if isCorrect {
+		if difficulty == "Hard" {
+			score = 3
+		} else if difficulty == "Medium" {
+			score = 2
+		} else {
+			score = 1
 		}
 	}
 
@@ -127,6 +138,7 @@ func SubmitSolution(c *gin.Context) {
 	solution := &models.Solution{}
 	solution.User = userId
 	solution.Question = qId
+	solution.Score = score
 	solution.Quiz = quizObjectId
 	solution.IsCorrect = isCorrect
 	solution.PreSave()
@@ -137,4 +149,76 @@ func SubmitSolution(c *gin.Context) {
 	}
 
 	c.JSON(200, core.ApiResponse(200, "Answer submitted successfully", body))
+}
+
+func SubmitQuiz(c *gin.Context) {
+	quizId := c.Param("quizId")
+	qId, err := primitive.ObjectIDFromHex(quizId)
+	if err != nil {
+		c.JSON(400, core.NewAppError(400, "Invalid Request", "quizId is invalid"))
+		return
+	}
+
+	u, exists := c.Get("user")
+	if !exists {
+		c.JSON(400, core.NewAppError(400, "Invalid Request", "user not found"))
+		return
+	}
+	user := u.(*models.User)
+	userId := user.ID
+
+	TestSubmissions := models.GetTestSubmissionCollection()
+	quizzes := models.GetQuizzesCollection()
+	solutions := models.GetSolutionsCollection()
+
+	var testSubmission *models.TestSubmission
+	if err := TestSubmissions.FindOne(ctx, bson.M{"user": userId, "quiz": qId}).Decode(&testSubmission); err == nil {
+		c.JSON(409, core.NewAppError(500, "Failed to submit quiz", "quiz already submitted"))
+		return
+	}
+
+	var quiz *models.Quiz
+	if err := quizzes.FindOne(ctx, bson.M{"_id": qId}).Decode(&quiz); err != nil {
+		c.JSON(500, core.NewAppError(500, "Failed to get quiz", err.Error()))
+		return
+	}
+
+	questions := quiz.Questions
+	// solutions -> userId, qId, questionId
+	solArr := []primitive.M{}
+	cursor, err := solutions.Find(ctx, bson.M{"user": userId, "quiz": qId, "question": bson.M{"$in": questions}})
+	if err != nil {
+		c.JSON(500, core.NewAppError(500, "Failed to get solutions", err.Error()))
+		return
+	}
+	defer cursor.Close(ctx)
+
+	if err := cursor.All(ctx, &solArr); err != nil {
+		c.JSON(500, core.NewAppError(500, "Failed to get solutions", err.Error()))
+		return
+	}
+
+	finalScore := 0
+	for _, solution := range solArr {
+		if score32, ok := solution["score"].(int32); ok {
+			finalScore += int(score32)
+		}
+	}
+
+	testSubmission = &models.TestSubmission{}
+	testSubmission.User = userId
+	testSubmission.Quiz = qId
+	testSubmission.Score = finalScore
+	testSubmission.PreSave()
+
+	if _, err := TestSubmissions.InsertOne(ctx, testSubmission); err != nil {
+		c.JSON(500, core.NewAppError(500, "Failed to submit quiz", err.Error()))
+		return
+	}
+	c.JSON(201, core.ApiResponse(200, "Quiz submitted successfully", map[string]interface{}{
+		"user":         userId,
+		"quiz":         qId,
+		"is_submitted": true,
+		"score":        finalScore,
+	}))
 }
