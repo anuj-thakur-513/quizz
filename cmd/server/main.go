@@ -11,8 +11,10 @@ import (
 )
 
 func main() {
-	client := services.ConnectDb()
-	fmt.Println(client.Ping(context.TODO(), nil))
+	db := services.ConnectDb()
+	redis := services.ConnectRedis()
+	fmt.Println("REDIS", redis.Ping(context.TODO()))
+	fmt.Println(db.Ping(context.TODO(), nil))
 	router := router.SetupRouter()
 	port := config.GetEnv().PORT
 	err := router.Run(":" + port)

@@ -19,10 +19,17 @@ type Keys struct {
 	MONGO_URL  string
 	JWT_SECRET string
 	QUIZ_API   QuizAPIKeys
+	REDIS      RedisKeys
 }
 type QuizAPIKeys struct {
 	URL   string
 	TOKEN string
+}
+
+type RedisKeys struct {
+	Address  string
+	Username string
+	Password string
 }
 
 func GetEnv() *Keys {
@@ -33,6 +40,11 @@ func GetEnv() *Keys {
 		QUIZ_API: QuizAPIKeys{
 			URL:   getEnv("QUIZ_API_URL", "https://quizapi.io/api/v1/questions"),
 			TOKEN: getEnv("QUIZ_API_TOKEN", "secret"),
+		},
+		REDIS: RedisKeys{
+			Address:  getEnv("REDIS_ADDRESS", "localhost:6379"),
+			Username: getEnv("REDIS_USERNAME", "default"),
+			Password: getEnv("REDIS_PASSWORD", ""),
 		},
 	}
 }
