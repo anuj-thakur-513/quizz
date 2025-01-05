@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var client *mongo.Client
+var mongoClient *mongo.Client
 
 func ConnectDb() *mongo.Client {
 	var connectionString string = config.GetEnv().MONGO_URL
@@ -19,11 +19,11 @@ func ConnectDb() *mongo.Client {
 	if err != nil {
 		panic(err)
 	}
-	client = dbClient
+	mongoClient = dbClient
 	fmt.Println("MongoDB connection successful")
-	return client
+	return mongoClient
 }
 
 func GetDatabase() *mongo.Database {
-	return client.Database(utils.DB_NAME)
+	return mongoClient.Database(utils.DB_NAME)
 }

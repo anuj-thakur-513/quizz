@@ -147,6 +147,7 @@ func SubmitSolution(c *gin.Context) {
 		c.JSON(500, core.NewAppError(500, "Failed to submit answer", err.Error()))
 		return
 	}
+	solution.PostSave(user.Name)
 
 	c.JSON(200, core.ApiResponse(200, "Answer submitted successfully", body))
 }

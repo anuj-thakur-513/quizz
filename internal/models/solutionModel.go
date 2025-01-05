@@ -27,6 +27,11 @@ func (s *Solution) PreSave() {
 	s.UpdatedAt = &now
 }
 
+func (s *Solution) PostSave(username string) {
+	key := s.Quiz.Hex() + "_leaderboard"
+	services.AddToZSet(key, float64(s.Score), s.User.String(), username)
+}
+
 func GetSolutionsCollection() *mongo.Collection {
 	return services.GetDatabase().Collection("solutions")
 }
