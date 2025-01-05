@@ -215,6 +215,8 @@ func SubmitQuiz(c *gin.Context) {
 		c.JSON(500, core.NewAppError(500, "Failed to submit quiz", err.Error()))
 		return
 	}
+	testSubmission.PostSave()
+
 	c.JSON(201, core.ApiResponse(200, "Quiz submitted successfully", map[string]interface{}{
 		"user":         userId,
 		"quiz":         qId,

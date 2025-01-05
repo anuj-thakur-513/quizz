@@ -34,6 +34,35 @@ func (ts *TestSubmission) PreSave() {
 	}
 }
 
+func (ts *TestSubmission) PostSave() {
+	quizId := ts.Quiz
+	userId := ts.User
+	score := ts.Score
+
+	lb := GetLeaderboardCollection()
+	filter := bson.M{"quiz": quizId}
+
+	var data *Leaderboard
+
+	if err := lb.FindOne(context.Background(), filter).Decode(&data); err != nil {
+		// create leaderboard if not already present
+		data = &Leaderboard{
+			Quiz:  quizId,
+			Users: []LeaderboardUser{{User: userId, Score: score}},
+		}
+		data.PreSave()
+		if _, err := lb.InsertOne(context.Background(), data); err != nil {
+			log.Fatalf("Failed to insert leaderboard: %v", err)
+		}
+	} else {
+		data.Users = append(data.Users, LeaderboardUser{User: userId, Score: score})
+		data.PreSave()
+		if _, err := lb.UpdateOne(context.Background(), filter, bson.M{"$set": bson.M{"users": data.Users}}); err != nil {
+			log.Fatalf("Failed to update leaderboard: %v", err)
+		}
+	}
+}
+
 func createUserQuizIndex(test_submissions *mongo.Collection) {
 	indexModel := mongo.IndexModel{
 		Keys:    bson.D{{Key: "user", Value: 1}, {Key: "quiz", Value: 1}},
