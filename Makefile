@@ -5,7 +5,7 @@ APP_NAME = quizz
 all: build
 
 # Build the application
-build: lint
+build: lint, install
 	go build -o $(APP_NAME)
 
 # Run the application
