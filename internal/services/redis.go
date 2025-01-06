@@ -95,3 +95,16 @@ func AddToZSet(key string, score float64, userId string, username string) {
 		fmt.Println(res)
 	}
 }
+
+func SetCache(key string, value string) {
+	redisClient.Set(context.Background(), key, value, 24*time.Hour)
+}
+
+func GetCache(key string) string {
+	res := redisClient.Get(context.Background(), key)
+	return res.Val()
+}
+
+func DeleteCache(key string) {
+	redisClient.Del(context.Background(), key)
+}

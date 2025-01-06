@@ -1,7 +1,11 @@
 package controllers
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/anuj-thakur-513/quizz/internal/models"
+	"github.com/anuj-thakur-513/quizz/internal/services"
 	"github.com/anuj-thakur-513/quizz/pkg/core"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
@@ -224,4 +228,40 @@ func SubmitQuiz(c *gin.Context) {
 		"is_submitted": true,
 		"score":        finalScore,
 	}))
+}
+
+func StartQuiz(c *gin.Context) {
+	quizId := c.Param("quizId")
+	_, err := primitive.ObjectIDFromHex(quizId)
+	if err != nil {
+		c.JSON(400, core.NewAppError(400, "Invalid Request", "quizId is invalid"))
+		return
+	}
+
+	u, exists := c.Get("user")
+	if !exists {
+		c.JSON(400, core.NewAppError(400, "Invalid Request", "user not found"))
+		return
+	}
+	user := u.(*models.User)
+	// upgrade connection to WS
+	conn, err := services.UpgradeWsConnection(c.Writer, c.Request)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to establish WebSocket connection"})
+		return
+	}
+	defer func() {
+		services.RemoveConnection(user.ID.Hex())
+		conn.Close()
+	}()
+
+	// Add the connection to the activeConnections map
+	services.AddConnection(user.ID.Hex(), conn)
+	for {
+		_, _, err := conn.ReadMessage()
+		if err != nil {
+			log.Printf("Error reading message for user %s: %v", user.ID.Hex(), err)
+			break
+		}
+	}
 }
