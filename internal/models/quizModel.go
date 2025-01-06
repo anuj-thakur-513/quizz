@@ -13,13 +13,15 @@ import (
 )
 
 type Quiz struct {
-	ID            primitive.ObjectID   `json:"_id,omitempty" bson:"_id,omitempty"`
-	Category      string               `json:"category" validate:"required"`
-	QuestionCount int                  `json:"question_count" bson:"question_count"`
-	Questions     []primitive.ObjectID `json:"questions" bson:"questions"`
-	IsLive        *bool                `json:"is_live" bson:"is_live"`
-	CreatedAt     *time.Time           `json:"created_at,omitempty" bson:"created_at,omitempty"`
-	UpdatedAt     *time.Time           `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	ID              primitive.ObjectID   `json:"_id,omitempty" bson:"_id,omitempty"`
+	Category        string               `json:"category" validate:"required"`
+	QuestionCount   int                  `json:"question_count" bson:"question_count"`
+	Questions       []primitive.ObjectID `json:"questions" bson:"questions"`
+	IsLive          *bool                `json:"is_live" bson:"is_live"`
+	LiveTime        *time.Time           `json:"live_time" bson:"live_time"`
+	DurationSeconds int                  `json:"duration_seconds" bson:"duration_seconds"`
+	CreatedAt       *time.Time           `json:"created_at,omitempty" bson:"created_at,omitempty"`
+	UpdatedAt       *time.Time           `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
 
 func (q *Quiz) PreSave() {
@@ -27,8 +29,11 @@ func (q *Quiz) PreSave() {
 		q.QuestionCount = 10
 	}
 	if q.IsLive == nil {
-		t := true
-		q.IsLive = &t
+		f := false
+		q.IsLive = &f
+	}
+	if q.DurationSeconds == 0 {
+		q.DurationSeconds = q.QuestionCount * 30 // 30 seconds for every question
 	}
 	now := time.Now()
 	if q.CreatedAt == nil {

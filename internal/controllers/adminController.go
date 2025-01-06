@@ -9,6 +9,7 @@ import (
 	"github.com/anuj-thakur-513/quizz/internal/config"
 	"github.com/anuj-thakur-513/quizz/internal/models"
 	"github.com/anuj-thakur-513/quizz/pkg/core"
+	"github.com/anuj-thakur-513/quizz/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -72,13 +73,13 @@ func CreateQuiz(c *gin.Context) {
 	var questionData []interface{}
 	for _, question := range jsonResponse {
 		q := models.Question{
-			QuestionText:      question["question"].(string),
+			QuestionText:      utils.ConvertToString(question["question"]),
 			IsMultipleCorrect: question["multiple_correct_answers"].(string) == "true",
 			Options: extractOptions(question["answers"].(map[string]interface{}),
 				question["correct_answers"].(map[string]interface{})),
-			SolutionText: question["explanation"].(string),
-			Difficulty:   question["difficulty"].(string),
-			Category:     question["category"].(string),
+			SolutionText: utils.ConvertToString(question["explanation"]),
+			Difficulty:   utils.ConvertToString(question["difficulty"]),
+			Category:     utils.ConvertToString(question["category"]),
 		}
 		q.PreSave()
 		questionData = append(questionData, q)
