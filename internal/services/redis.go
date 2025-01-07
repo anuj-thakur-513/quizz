@@ -96,6 +96,12 @@ func AddToZSet(key string, score float64, userId string, username string) {
 	}
 }
 
+func GetZSet(key string) []string {
+	finalKey := "quizz:" + key
+	res := redisClient.ZRange(context.Background(), finalKey, 0, -1)
+	return res.Val()
+}
+
 func SetCache(key string, value string) {
 	redisClient.Set(context.Background(), key, value, 24*time.Hour)
 }

@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"log"
 	"net/http"
+	"time"
 
 	"github.com/anuj-thakur-513/quizz/internal/models"
 	"github.com/anuj-thakur-513/quizz/internal/services"
@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -232,11 +233,56 @@ func SubmitQuiz(c *gin.Context) {
 
 func StartQuiz(c *gin.Context) {
 	quizId := c.Param("quizId")
-	_, err := primitive.ObjectIDFromHex(quizId)
+	qId, err := primitive.ObjectIDFromHex(quizId)
 	if err != nil {
 		c.JSON(400, core.NewAppError(400, "Invalid Request", "quizId is invalid"))
 		return
 	}
+
+	quizzes := models.GetQuizzesCollection()
+	pipeline := []bson.D{
+		{
+			{Key: "$match", Value: bson.M{"_id": qId}},
+		},
+		{
+			{Key: "$lookup", Value: bson.M{
+				"from":         "questions",
+				"localField":   "questions",
+				"foreignField": "_id",
+				"as":           "questions",
+			}},
+		},
+		{
+			{Key: "$project", Value: bson.M{
+				"category":                      1,
+				"question_count":                1,
+				"live_time":                     1,
+				"duration_seconds":              1,
+				"questions.question_text":       1,
+				"questions.is_multiple_correct": 1,
+				"questions.options":             1,
+			}},
+		},
+	}
+
+	var data []primitive.M
+	cursor, err := quizzes.Aggregate(ctx, mongo.Pipeline(pipeline))
+	if err != nil {
+		c.JSON(500, core.NewAppError(500, "Failed to get quiz", err.Error()))
+	}
+	defer cursor.Close(ctx)
+	if err := cursor.All(ctx, &data); err != nil {
+		c.JSON(500, core.NewAppError(500, "Failed to get quiz", err.Error()))
+	}
+
+	quiz := data[0]
+
+	quizStartTime := quiz["live_time"].(primitive.DateTime).Time()
+	quizDuration := quiz["duration_seconds"].(int32)
+	quizEndTime := quizStartTime.Add(time.Duration(quizDuration) * time.Second)
+	questionCount := quiz["question_count"].(int32)
+	timePerQuestion := quizDuration / questionCount
+	questions := quiz["questions"].(primitive.A)
 
 	u, exists := c.Get("user")
 	if !exists {
@@ -255,13 +301,58 @@ func StartQuiz(c *gin.Context) {
 		conn.Close()
 	}()
 
+	counter := 0
+	qIndex := 0
+	// when to send a question or LB to FE
+	/*
+		timePerQuestion = 30
+		0, 1, 2, 3, .... ,30
+		counter % timePerQuestion == 0
+
+		When qIndex > 0, send Leaderboard to FE
+	*/
+
 	// Add the connection to the activeConnections map
 	services.AddConnection(user.ID.Hex(), conn)
 	for {
-		_, _, err := conn.ReadMessage()
-		if err != nil {
-			log.Printf("Error reading message for user %s: %v", user.ID.Hex(), err)
+		currTime := time.Now().Truncate(time.Second)
+		// quiz has ended
+		if currTime.Equal(quizEndTime) || currTime.After(quizEndTime) {
 			break
 		}
+		// send questions when quiz has started
+		if currTime.Equal(quizStartTime) || currTime.After(quizStartTime) {
+			if counter%int(timePerQuestion) == 0 {
+				if qIndex < int(questionCount) {
+					if qIndex > 0 {
+						// services.SendLeaderboard(conn, services.GetZSet(quizId+"_leaderboard"))
+					}
+
+					question := questions[qIndex].(primitive.M)
+					questionText := question["question_text"].(string)
+					isMultipleCorrect := question["is_multiple_correct"].(bool)
+					options := question["options"].(primitive.A)
+					finalOptions := []string{}
+					for _, option := range options {
+						option := option.(primitive.M)
+						finalOptions = append(finalOptions, option["option"].(string))
+					}
+					services.SendQuestion(conn, map[string]interface{}{
+						"question_text":       questionText,
+						"is_multiple_correct": isMultipleCorrect,
+						"options":             finalOptions,
+					})
+					qIndex += 1
+				} else {
+					break
+				}
+			}
+			counter += 1
+		}
+		// quiz has not yet started
+		if currTime.Before(quizStartTime.Add(-120 * time.Second)) {
+			break
+		}
+		time.Sleep(1 * time.Second)
 	}
 }

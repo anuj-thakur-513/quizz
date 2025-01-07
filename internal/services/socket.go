@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"sync"
 
+	"encoding/json"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -39,4 +41,18 @@ func RemoveConnection(userId string) {
 	defer wsMutex.Unlock()
 	DeleteCache(userId)
 	log.Printf("Connection removed for user: %s", userId)
+}
+
+// send question detail over WS
+func SendQuestion(conn *websocket.Conn, data map[string]interface{}) {
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		log.Println("Failed to marshal data:", err)
+		return
+	}
+	conn.WriteMessage(websocket.TextMessage, []byte(jsonData))
+}
+
+func SendLeaderboard(conn *websocket.Conn, data []string) {
+	// TODO: complete this function
 }
