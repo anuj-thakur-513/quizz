@@ -47,7 +47,6 @@ func AddToZSet(key string, score float64, userId string, username string) {
 			Score:  score,
 			Member: json,
 		})
-		redisClient.Expire(context.Background(), key, 48*time.Hour)
 	} else {
 		var members []*LeaderboardSetMember
 		for _, memberString := range set.Val() {
@@ -88,12 +87,12 @@ func AddToZSet(key string, score float64, userId string, username string) {
 			})
 		}
 
-		res, err := pipeline.Exec(context.Background())
+		_, err := pipeline.Exec(context.Background())
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-		fmt.Println(res)
 	}
+	redisClient.Expire(context.Background(), key, 48*time.Hour)
 }
 
 func GetZSet(key string) []string {
