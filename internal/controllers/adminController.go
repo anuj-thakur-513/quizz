@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/anuj-thakur-513/quizz/internal/config"
 	"github.com/anuj-thakur-513/quizz/internal/models"
@@ -33,7 +34,10 @@ func extractOptions(answers map[string]interface{}, correctAnswers map[string]in
 }
 
 func CreateQuiz(c *gin.Context) {
-	ctx := context.Background()
+	bgContext := context.Background()
+	ctx, cancel := context.WithTimeout(bgContext, 10*time.Second)
+	defer cancel()
+
 	var quizData *models.Quiz
 	if err := c.BindJSON(&quizData); err != nil {
 		c.JSON(400, core.NewAppError(400, "Invalid JSON body", err.Error()))
@@ -91,6 +95,10 @@ func CreateQuiz(c *gin.Context) {
 
 	r, dbErr := questions.InsertMany(ctx, questionData)
 	if dbErr != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			c.JSON(500, core.NewAppError(500, "Request timed out", "context deadline exceeded"))
+			return
+		}
 		c.JSON(500, core.NewAppError(500, "Failed to create questions", dbErr.Error()))
 		return
 	}
@@ -100,11 +108,15 @@ func CreateQuiz(c *gin.Context) {
 	}
 
 	if _, err := quizzes.InsertOne(ctx, quizData); err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			c.JSON(500, core.NewAppError(500, "Request timed out", "context deadline exceeded"))
+			return
+		}
 		c.JSON(500, core.NewAppError(500, "Failed to create quiz", err.Error()))
 		return
 	}
 
-	c.JSON(201, core.ApiResponse(200, "Create Quiz", map[string]interface{}{
+	c.JSON(201, core.ApiResponse(201, "Create Quiz", map[string]interface{}{
 		"category":       quizData.Category,
 		"question_count": quizData.QuestionCount,
 	}))
