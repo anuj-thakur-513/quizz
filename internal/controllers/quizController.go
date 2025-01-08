@@ -19,7 +19,8 @@ import (
 func GetQuizzes(c *gin.Context) {
 	ctx := context.Background()
 	quizzes := models.GetQuizzesCollection()
-	cursor, err := quizzes.Find(ctx, bson.M{}, options.Find().SetProjection(
+	currTime := time.Now()
+	cursor, err := quizzes.Find(ctx, bson.M{"live_time": bson.M{"$gt": currTime}}, options.Find().SetProjection(
 		bson.M{
 			"created_at": 0,
 			"updated_at": 0,
