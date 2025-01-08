@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -32,6 +33,7 @@ func extractOptions(answers map[string]interface{}, correctAnswers map[string]in
 }
 
 func CreateQuiz(c *gin.Context) {
+	ctx := context.Background()
 	var quizData *models.Quiz
 	if err := c.BindJSON(&quizData); err != nil {
 		c.JSON(400, core.NewAppError(400, "Invalid JSON body", err.Error()))

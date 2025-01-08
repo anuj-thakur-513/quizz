@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"log"
@@ -13,6 +14,7 @@ import (
 )
 
 func Signup(c *gin.Context) {
+	ctx := context.Background()
 	var newUser *models.User
 	if err := c.BindJSON(&newUser); err != nil {
 		c.JSON(400, core.NewAppError(400, "Invalid JSON body", err.Error()))
@@ -44,6 +46,7 @@ func Signup(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
+	ctx := context.Background()
 	ginBody := c.Request.Body
 	// convert to json
 	body, err := io.ReadAll(ginBody)

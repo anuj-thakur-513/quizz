@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 )
 
 func GetQuizzes(c *gin.Context) {
+	ctx := context.Background()
 	quizzes := models.GetQuizzesCollection()
 	cursor, err := quizzes.Find(ctx, bson.M{}, options.Find().SetProjection(
 		bson.M{
@@ -37,6 +39,7 @@ func GetQuizzes(c *gin.Context) {
 }
 
 func GetQuiz(c *gin.Context) {
+	ctx := context.Background()
 	quizId := c.Param("quizId")
 	if quizId == "" {
 		c.JSON(400, core.NewAppError(400, "Invalid Request", "quizId is required"))
@@ -61,6 +64,7 @@ func GetQuiz(c *gin.Context) {
 }
 
 func SubmitSolution(c *gin.Context) {
+	ctx := context.Background()
 	quizId := c.Param("quizId")
 	questionId := c.Param("questionId")
 	if quizId == "" || questionId == "" {
@@ -158,6 +162,7 @@ func SubmitSolution(c *gin.Context) {
 }
 
 func SubmitQuiz(c *gin.Context) {
+	ctx := context.Background()
 	quizId := c.Param("quizId")
 	qId, err := primitive.ObjectIDFromHex(quizId)
 	if err != nil {
@@ -232,6 +237,7 @@ func SubmitQuiz(c *gin.Context) {
 }
 
 func StartQuiz(c *gin.Context) {
+	ctx := context.Background()
 	quizId := c.Param("quizId")
 	qId, err := primitive.ObjectIDFromHex(quizId)
 	if err != nil {
@@ -303,14 +309,6 @@ func StartQuiz(c *gin.Context) {
 
 	counter := 0
 	qIndex := 0
-	// when to send a question or LB to FE
-	/*
-		timePerQuestion = 30
-		0, 1, 2, 3, .... ,30
-		counter % timePerQuestion == 0
-
-		When qIndex > 0, send Leaderboard to FE
-	*/
 
 	// Add the connection to the activeConnections map
 	services.AddConnection(user.ID.Hex(), conn)
@@ -325,6 +323,7 @@ func StartQuiz(c *gin.Context) {
 			if counter%int(timePerQuestion) == 0 {
 				if qIndex < int(questionCount) {
 					if qIndex > 0 {
+						// TODO: continue here
 						// services.SendLeaderboard(conn, services.GetZSet(quizId+"_leaderboard"))
 					}
 
