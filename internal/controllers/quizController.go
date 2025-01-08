@@ -3,15 +3,16 @@ package controllers
 import (
 	"context"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/anuj-thakur-513/quizz/internal/models"
+	"github.com/anuj-thakur-513/quizz/internal/repository"
 	"github.com/anuj-thakur-513/quizz/internal/services"
 	"github.com/anuj-thakur-513/quizz/pkg/core"
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -237,7 +238,9 @@ func SubmitQuiz(c *gin.Context) {
 }
 
 func StartQuiz(c *gin.Context) {
-	ctx := context.Background()
+	wg := &sync.WaitGroup{}
+	mu := &sync.RWMutex{}
+
 	quizId := c.Param("quizId")
 	qId, err := primitive.ObjectIDFromHex(quizId)
 	if err != nil {
@@ -245,43 +248,13 @@ func StartQuiz(c *gin.Context) {
 		return
 	}
 
-	quizzes := models.GetQuizzesCollection()
-	pipeline := []bson.D{
-		{
-			{Key: "$match", Value: bson.M{"_id": qId}},
-		},
-		{
-			{Key: "$lookup", Value: bson.M{
-				"from":         "questions",
-				"localField":   "questions",
-				"foreignField": "_id",
-				"as":           "questions",
-			}},
-		},
-		{
-			{Key: "$project", Value: bson.M{
-				"category":                      1,
-				"question_count":                1,
-				"live_time":                     1,
-				"duration_seconds":              1,
-				"questions.question_text":       1,
-				"questions.is_multiple_correct": 1,
-				"questions.options":             1,
-			}},
-		},
-	}
-
-	var data []primitive.M
-	cursor, err := quizzes.Aggregate(ctx, mongo.Pipeline(pipeline))
+	data, err := repository.GetQuizWithQuestionDetails(qId)
 	if err != nil {
 		c.JSON(500, core.NewAppError(500, "Failed to get quiz", err.Error()))
-	}
-	defer cursor.Close(ctx)
-	if err := cursor.All(ctx, &data); err != nil {
-		c.JSON(500, core.NewAppError(500, "Failed to get quiz", err.Error()))
+		return
 	}
 
-	quiz := data[0]
+	quiz := (*data)[0]
 
 	quizStartTime := quiz["live_time"].(primitive.DateTime).Time()
 	quizDuration := quiz["duration_seconds"].(int32)
@@ -289,6 +262,11 @@ func StartQuiz(c *gin.Context) {
 	questionCount := quiz["question_count"].(int32)
 	timePerQuestion := quizDuration / questionCount
 	questions := quiz["questions"].(primitive.A)
+
+	if time.Now().Truncate(time.Second).Equal(quizStartTime) || time.Now().Truncate(time.Second).After(quizStartTime) {
+		c.JSON(400, core.NewAppError(400, "Invalid Request", "quiz has already started"))
+		return
+	}
 
 	u, exists := c.Get("user")
 	if !exists {
@@ -322,25 +300,14 @@ func StartQuiz(c *gin.Context) {
 		if currTime.Equal(quizStartTime) || currTime.After(quizStartTime) {
 			if counter%int(timePerQuestion) == 0 {
 				if qIndex < int(questionCount) {
-					if qIndex > 0 {
-						// TODO: continue here
-						// services.SendLeaderboard(conn, services.GetZSet(quizId+"_leaderboard"))
-					}
-
 					question := questions[qIndex].(primitive.M)
-					questionText := question["question_text"].(string)
-					isMultipleCorrect := question["is_multiple_correct"].(bool)
-					options := question["options"].(primitive.A)
-					finalOptions := []string{}
-					for _, option := range options {
-						option := option.(primitive.M)
-						finalOptions = append(finalOptions, option["option"].(string))
+					wg.Add(1)
+					go services.SendQuestion(conn, question, wg, mu)
+					if qIndex > 0 {
+						wg.Add(1)
+						go services.SendLeaderboard(conn, quizId+"_leaderboard", wg, mu)
 					}
-					services.SendQuestion(conn, map[string]interface{}{
-						"question_text":       questionText,
-						"is_multiple_correct": isMultipleCorrect,
-						"options":             finalOptions,
-					})
+					wg.Wait()
 					qIndex += 1
 				} else {
 					break

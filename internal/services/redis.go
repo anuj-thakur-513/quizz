@@ -102,6 +102,16 @@ func GetZSet(key string) []string {
 	return res.Val()
 }
 
+func GetZScore(key string, member *LeaderboardSetMember) float64 {
+	finalKey := "quizz:" + key
+	m, err := json.Marshal(member)
+	if err != nil {
+		return -1
+	}
+	res := redisClient.ZScore(context.Background(), finalKey, string(m))
+	return res.Val()
+}
+
 func SetCache(key string, value string) {
 	redisClient.Set(context.Background(), key, value, 24*time.Hour)
 }

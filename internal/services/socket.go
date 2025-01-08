@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 
 	"github.com/gorilla/websocket"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var wsMutex *sync.Mutex = &sync.Mutex{}
@@ -44,15 +45,55 @@ func RemoveConnection(userId string) {
 }
 
 // send question detail over WS
-func SendQuestion(conn *websocket.Conn, data map[string]interface{}) {
+func SendQuestion(conn *websocket.Conn, question primitive.M, wg *sync.WaitGroup, mu *sync.RWMutex) {
+	questionText := question["question_text"].(string)
+	isMultipleCorrect := question["is_multiple_correct"].(bool)
+	options := question["options"].(primitive.A)
+	finalOptions := []string{}
+	for _, option := range options {
+		option := option.(primitive.M)
+		finalOptions = append(finalOptions, option["option"].(string))
+	}
+
+	data := map[string]interface{}{
+		"questionText":      questionText,
+		"isMultipleCorrect": isMultipleCorrect,
+		"options":           finalOptions,
+	}
+
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		log.Println("Failed to marshal data:", err)
 		return
 	}
+	mu.Lock()
 	conn.WriteMessage(websocket.TextMessage, []byte(jsonData))
+	mu.Unlock()
+	wg.Done()
 }
 
-func SendLeaderboard(conn *websocket.Conn, data []string) {
-	// TODO: complete this function
+func SendLeaderboard(conn *websocket.Conn, key string, wg *sync.WaitGroup, mu *sync.RWMutex) {
+	data := GetZSet(key)
+	var leaderboard []map[string]interface{}
+	for _, d := range data {
+		curr := map[string]interface{}{}
+		json.Unmarshal([]byte(d), &curr)
+		s := GetZScore(key, &LeaderboardSetMember{
+			UserId:   curr["user_id"].(string),
+			Username: curr["username"].(string),
+		})
+		curr["score"] = s
+		leaderboard = append(leaderboard, curr)
+	}
+
+	jsonData, err := json.Marshal(leaderboard)
+	if err != nil {
+		log.Println("Failed to marshal data:", err)
+		return
+	}
+
+	mu.Lock()
+	conn.WriteMessage(websocket.TextMessage, []byte(jsonData))
+	mu.Unlock()
+	wg.Done()
 }
