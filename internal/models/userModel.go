@@ -13,6 +13,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type SanitizedUser struct {
+	ID    primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Name  string             `json:"name" bson:"name"`
+	Email string             `json:"email" bson:"email"`
+	Role  Role               `json:"role" bson:"role"`
+}
+
 type User struct {
 	ID        primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Name      string             `json:"name" bson:"name" validate:"required,min=2,max=100"`
@@ -53,6 +60,15 @@ func (u *User) PreSave() {
 func (u *User) ComparePassword(password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
 	return err == nil
+}
+
+func (u *User) SanitizeUser() *SanitizedUser {
+	return &SanitizedUser{
+		ID:    u.ID,
+		Name:  u.Name,
+		Email: u.Email,
+		Role:  u.Role,
+	}
 }
 
 func createUniqueEmailIndex(users *mongo.Collection) {

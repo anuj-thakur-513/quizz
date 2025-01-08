@@ -95,3 +95,16 @@ func Login(c *gin.Context) {
 
 	c.JSON(200, core.ApiResponse(200, "User logged in successfully", nil))
 }
+
+func AuthCheck(c *gin.Context) {
+	u, _ := c.Get("user")
+	if u == nil {
+		c.JSON(401, core.NewAppError(401, "Unauthorized"))
+		return
+	}
+
+	user := u.(*models.User)
+	sanitizedUser := user.SanitizeUser()
+	d, _ := json.Marshal(sanitizedUser)
+	c.JSON(200, core.ApiResponse(200, "Authorized", string(d)))
+}
