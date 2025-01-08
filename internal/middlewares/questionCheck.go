@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"context"
+	"time"
 
 	"github.com/anuj-thakur-513/quizz/internal/models"
 	"github.com/anuj-thakur-513/quizz/pkg/core"
@@ -46,7 +47,16 @@ func QuestionInQuiz() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		c.Set("isQuizLive", &quiz.IsLive)
+
+		quizLiveTime := quiz.LiveTime
+		quizEndTime := quizLiveTime.Add(time.Duration(quiz.DurationSeconds) * time.Second)
+		if time.Now().Truncate(time.Second).After(quizEndTime) || time.Now().Truncate(time.Second).Before(*quizLiveTime) {
+			c.JSON(400, core.NewAppError(400, "Invalid Request", "quiz is not live"))
+			c.Abort()
+			return
+		}
+
+		c.Set("isQuizLive", true)
 		c.Next()
 	}
 }

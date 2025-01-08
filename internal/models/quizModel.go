@@ -17,8 +17,7 @@ type Quiz struct {
 	Category        string               `json:"category" validate:"required"`
 	QuestionCount   int                  `json:"question_count" bson:"question_count"`
 	Questions       []primitive.ObjectID `json:"questions" bson:"questions"`
-	IsLive          *bool                `json:"is_live" bson:"is_live"`
-	LiveTime        *time.Time           `json:"live_time" bson:"live_time"`
+	LiveTime        *time.Time           `json:"live_time" bson:"live_time" validate:"required"`
 	DurationSeconds int                  `json:"duration_seconds" bson:"duration_seconds"`
 	CreatedAt       *time.Time           `json:"created_at,omitempty" bson:"created_at,omitempty"`
 	UpdatedAt       *time.Time           `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
@@ -27,10 +26,6 @@ type Quiz struct {
 func (q *Quiz) PreSave() {
 	if q.QuestionCount == 0 {
 		q.QuestionCount = 10
-	}
-	if q.IsLive == nil {
-		f := false
-		q.IsLive = &f
 	}
 	if q.DurationSeconds == 0 {
 		q.DurationSeconds = q.QuestionCount * 30 // 30 seconds for every question

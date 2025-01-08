@@ -85,8 +85,7 @@ func SubmitSolution(c *gin.Context) {
 		c.JSON(400, core.NewAppError(400, "Invalid Request", "quiz live status is not set"))
 		return
 	}
-	// Dereference **bool to get the actual bool value
-	if isLive, ok := value.(**bool); ok && *isLive != nil && !**isLive {
+	if !value.(bool) {
 		c.JSON(400, core.NewAppError(400, "Invalid Request", "quiz is not live"))
 		return
 	}
