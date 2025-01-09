@@ -8,6 +8,6 @@ import (
 
 func UserRouter(router *gin.RouterGroup) {
 	router.POST("/signup", controllers.Signup)
-	router.GET("/login", controllers.Login)
+	router.POST("/login", controllers.Login)
 	router.GET("/authCheck", middlewares.AuthCheck(), controllers.AuthCheck)
 }
