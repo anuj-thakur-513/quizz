@@ -67,7 +67,9 @@ func SendQuestion(conn *websocket.Conn, question primitive.M, wg *sync.WaitGroup
 		return
 	}
 	mu.Lock()
-	conn.WriteMessage(websocket.TextMessage, []byte(jsonData))
+	if err := conn.WriteMessage(websocket.TextMessage, []byte(jsonData)); err != nil {
+		log.Println("Failed to write message:", err)
+	}
 	mu.Unlock()
 	wg.Done()
 }
@@ -77,7 +79,10 @@ func SendLeaderboard(conn *websocket.Conn, key string, wg *sync.WaitGroup, mu *s
 	var leaderboard []map[string]interface{}
 	for _, d := range data {
 		curr := map[string]interface{}{}
-		json.Unmarshal([]byte(d), &curr)
+		if err := json.Unmarshal([]byte(d), &curr); err != nil {
+			log.Println("Failed to unmarshal data:", err)
+			continue
+		}
 		s := GetZScore(key, &LeaderboardSetMember{
 			UserId:   curr["user_id"].(string),
 			Username: curr["username"].(string),
@@ -93,7 +98,9 @@ func SendLeaderboard(conn *websocket.Conn, key string, wg *sync.WaitGroup, mu *s
 	}
 
 	mu.Lock()
-	conn.WriteMessage(websocket.TextMessage, []byte(jsonData))
+	if err := conn.WriteMessage(websocket.TextMessage, []byte(jsonData)); err != nil {
+		log.Println("Failed to write message:", err)
+	}
 	mu.Unlock()
 	wg.Done()
 }
