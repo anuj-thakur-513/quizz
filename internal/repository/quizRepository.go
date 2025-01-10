@@ -33,6 +33,7 @@ func GetQuizWithQuestionDetails(quizId primitive.ObjectID) (*[]bson.M, error) {
 				"questions.question_text":       1,
 				"questions.is_multiple_correct": 1,
 				"questions.options":             1,
+				"questions._id":                 1,
 			}},
 		},
 	}

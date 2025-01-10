@@ -16,6 +16,13 @@ var wsMutex *sync.Mutex = &sync.Mutex{}
 var wsUpgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		origin := r.Header.Get("Origin")
+		if origin == "http://localhost:3000" || origin == "http://localhost:5173" { // Replace this  URL
+			return true
+		}
+		return false
+	},
 }
 
 func UpgradeWsConnection(w http.ResponseWriter, r *http.Request) (*websocket.Conn, error) {
@@ -46,6 +53,7 @@ func RemoveConnection(userId string) {
 
 // send question detail over WS
 func SendQuestion(conn *websocket.Conn, question primitive.M, wg *sync.WaitGroup, mu *sync.RWMutex) {
+	questionId := question["_id"].(primitive.ObjectID).Hex()
 	questionText := question["question_text"].(string)
 	isMultipleCorrect := question["is_multiple_correct"].(bool)
 	options := question["options"].(primitive.A)
@@ -57,6 +65,7 @@ func SendQuestion(conn *websocket.Conn, question primitive.M, wg *sync.WaitGroup
 
 	data := map[string]interface{}{
 		"questionText":      questionText,
+		"questionId":        questionId,
 		"isMultipleCorrect": isMultipleCorrect,
 		"options":           finalOptions,
 	}
@@ -98,6 +107,23 @@ func SendLeaderboard(conn *websocket.Conn, key string, wg *sync.WaitGroup, mu *s
 	}
 
 	mu.Lock()
+	if err := conn.WriteMessage(websocket.TextMessage, []byte(jsonData)); err != nil {
+		log.Println("Failed to write message:", err)
+	}
+	mu.Unlock()
+	wg.Done()
+}
+
+func SendQuizEnded(conn *websocket.Conn, wg *sync.WaitGroup, mu *sync.RWMutex) {
+	mu.Lock()
+	data := map[string]interface{}{
+		"type": "quiz_ended",
+	}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		log.Println("Failed to marshal data:", err)
+		return
+	}
 	if err := conn.WriteMessage(websocket.TextMessage, []byte(jsonData)); err != nil {
 		log.Println("Failed to write message:", err)
 	}

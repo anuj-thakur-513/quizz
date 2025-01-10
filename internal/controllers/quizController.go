@@ -52,13 +52,19 @@ func GetQuiz(c *gin.Context) {
 	var quiz *models.Quiz
 	id, err := primitive.ObjectIDFromHex(quizId)
 	if err != nil {
-		c.JSON(400, core.NewAppError(400, "Invalid Request", "quizId is invalid"))
+		c.JSON(400, core.NewAppError(400, "Invalid Request", err.Error()))
+		return
 	}
 
 	if err := quizzes.FindOne(ctx, bson.M{"_id": id}, options.FindOne().SetProjection(
 		bson.M{"created_at": 0, "updated_at": 0},
 	)).Decode(&quiz); err != nil {
 		c.JSON(500, core.NewAppError(500, "Failed to get quiz", err.Error()))
+		return
+	}
+
+	if quiz.LiveTime.Before(time.Now()) {
+		c.JSON(400, core.NewAppError(400, "Invalid Request", "quiz has expired"))
 		return
 	}
 
@@ -310,6 +316,9 @@ func StartQuiz(c *gin.Context) {
 					wg.Wait()
 					qIndex += 1
 				} else {
+					wg.Add(1)
+					go services.SendQuizEnded(conn, wg, mu)
+					wg.Wait()
 					break
 				}
 			}
