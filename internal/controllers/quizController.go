@@ -298,8 +298,8 @@ func StartQuiz(c *gin.Context) {
 	services.AddConnection(user.ID.Hex(), conn)
 	for {
 		currTime := time.Now().Truncate(time.Second)
-		// quiz has ended
-		if currTime.Equal(quizEndTime) || currTime.After(quizEndTime) {
+		// quiz has ended (take a buffer of 5 minutes for this event so that the ended event is sent properly)
+		if currTime.Equal(quizEndTime.Add(5*time.Minute)) || currTime.After(quizEndTime.Add(5*time.Minute)) {
 			break
 		}
 		// send questions when quiz has started
@@ -316,7 +316,8 @@ func StartQuiz(c *gin.Context) {
 					wg.Wait()
 					qIndex += 1
 				} else {
-					wg.Add(1)
+					wg.Add(2)
+					go services.SendLeaderboard(conn, quizId+"_leaderboard", wg, mu)
 					go services.SendQuizEnded(conn, wg, mu)
 					wg.Wait()
 					break
