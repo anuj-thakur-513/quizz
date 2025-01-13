@@ -8,9 +8,13 @@ import (
 	"github.com/anuj-thakur-513/quizz/internal/config"
 	"github.com/anuj-thakur-513/quizz/internal/router"
 	"github.com/anuj-thakur-513/quizz/internal/services"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	db := services.ConnectDb()
 	redis := services.ConnectRedis()
 	fmt.Println("REDIS", redis.Ping(context.TODO()))
