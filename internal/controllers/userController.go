@@ -37,7 +37,7 @@ func Signup(c *gin.Context) {
 	if err != nil {
 		c.JSON(500, core.NewAppError(500, "Failed to create user", err.Error()))
 	}
-	c.SetCookie("token", token, 3600*24*30, "/", "localhost", true, true)
+	c.SetCookie("token", token, 3600*24*30, "/", "api.quizz.anuj-thakur.com", true, true)
 
 	var user *models.User
 	if err := users.FindOne(ctx, bson.M{"email": newUser.Email}).Decode(&user); err != nil {
@@ -94,7 +94,7 @@ func Login(c *gin.Context) {
 		c.JSON(500, core.NewAppError(500, "Failed to generate token", err.Error()))
 		return
 	}
-	c.SetCookie("token", token, 3600*24*30, "/", "localhost", true, true)
+	c.SetCookie("token", token, 3600*24*30, "/", "api.quizz.anuj-thakur.com", true, true)
 
 	c.JSON(200, core.ApiResponse(200, "User logged in successfully", user.SanitizeUser()))
 }
