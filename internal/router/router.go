@@ -15,6 +15,7 @@ func SetupRouter() *gin.Engine {
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
+		AllowWebSockets:  true,
 	}))
 
 	gin.SetMode(gin.ReleaseMode)

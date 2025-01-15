@@ -17,11 +17,14 @@ var wsUpgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		origin := r.Header.Get("Origin")
-		if origin == "http://localhost:3000" || origin == "http://localhost:5173" { // Replace this  URL
-			return true
+		allowedOrigins := map[string]bool{
+			"http://localhost:5173":             true,
+			"https://quizz.anuj-thakur.com":     true,
+			"https://www.quizz.anuj-thakur.com": true,
 		}
-		return false
+
+		origin := r.Header.Get("Origin")
+		return allowedOrigins[origin]
 	},
 }
 
