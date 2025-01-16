@@ -18,8 +18,6 @@ func SetupRouter() *gin.Engine {
 		AllowWebSockets:  true,
 	}))
 
-	gin.SetMode(gin.ReleaseMode)
-
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, core.ApiResponse(200, "Quizz Backend Working Fine", nil))
 	})
