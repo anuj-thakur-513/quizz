@@ -16,6 +16,9 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
+      - name: Debug secrets
+        run: echo "Secret length ${#${{ secrets.EC2_SSH_KEY }}}"
+
       - name: Deploy
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_IP }} << 'EOF'
@@ -27,6 +30,5 @@ jobs:
             cd /cmd/server
             go build -o quizz-backend
             killall screen
-            screen -S quizz-backend
-            ./quizz-backend
+            screen -dmS quizz-backend ./quizz-backend
           EOF
