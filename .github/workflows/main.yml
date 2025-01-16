@@ -26,6 +26,7 @@ jobs:
             go mod tidy
             cd cmd/server
             go build -o quizz-backend
-            killall screen
+            screen -S quizz-backend -X quit || true
             screen -dmS quizz-backend ./quizz-backend
+            screen -ls
           EOF
