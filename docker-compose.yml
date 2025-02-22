@@ -1,0 +1,19 @@
+services:
+  quizz-backend:
+    build: .
+    ports:
+      - 8080:8080
+    env_file:
+      - .env
+    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    networks:
+      - quizz-network
+
+networks:
+  quizz-network:
+    driver: bridge

@@ -18,9 +18,9 @@ var wsUpgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
 		allowedOrigins := map[string]bool{
-			"http://localhost:5173":             true,
-			"https://quizz.anuj-thakur.com":     true,
-			"https://www.quizz.anuj-thakur.com": true,
+			"http://localhost:5173":            true,
+			"https://quizz.anujthakur.dev":     true,
+			"https://www.quizz.anujthakur.dev": true,
 		}
 
 		origin := r.Header.Get("Origin")
