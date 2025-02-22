@@ -22,5 +22,5 @@ jobs:
             cd ~/quizz
             git pull
             git reset --hard origin/main
-            doppler secrets download --no-file --format env > .env
+            doppler secrets download --no-file --format env > internal/config/.env 
             docker-compose up -d --build
