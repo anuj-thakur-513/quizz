@@ -24,3 +24,5 @@ jobs:
             git reset --hard origin/main
             doppler secrets download --no-file --format env > .env 
             docker-compose up -d --build
+            sudo docker builder prune -a -f # remove all unused cache
+            sudo docker image prune -a -f # remove all unused images
