@@ -10,8 +10,8 @@ import (
 )
 
 func init() {
-	envPath := filepath.Join(os.Getenv("PWD"), "..", "..", ".env")
-	fmt.Println(envPath)
+	envPath := filepath.Join(os.Getenv("PWD"), ".env")
+	fmt.Println(envPath, os.Getenv("PWD"))
 	err := godotenv.Load(envPath)
 	if err != nil {
 		log.Fatal("Error loading .env file", err)
