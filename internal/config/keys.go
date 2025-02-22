@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -9,7 +10,9 @@ import (
 )
 
 func init() {
-	err := godotenv.Load(filepath.Join(os.Getenv("PWD"), "..", "..", ".env"))
+	envPath := filepath.Join(os.Getenv("PWD"), "..", "..", ".env")
+	fmt.Println(envPath)
+	err := godotenv.Load(envPath)
 	if err != nil {
 		log.Fatal("Error loading .env file", err)
 	}
