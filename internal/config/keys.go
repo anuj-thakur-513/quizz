@@ -12,14 +12,7 @@ import (
 func init() {
 	wd, _ := os.Getwd()
 	envPath := filepath.Join(wd, ".env")
-
 	fmt.Println(envPath, wd)
-	files, _ := os.ReadDir(wd)
-	fmt.Println("Files in Working Directory:")
-	for _, file := range files {
-		fmt.Println("-", file.Name())
-	}
-
 	err := godotenv.Load(envPath)
 	if err != nil {
 		log.Fatal("Error loading .env file", err)
